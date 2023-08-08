@@ -13,7 +13,6 @@ def constantIntervalVelocityFunction(t):
     return velocityFunctionIntegral(interval * 0.5)
 
 
-
 class Scene1(Scene):
     def construct(self):
         title = Text("Integrals" , color=BLUE).scale(0.85)
@@ -189,13 +188,13 @@ class Scene3(Scene):
             nextarea = rectangles[i]
 
             anims = []
-            for i in range(nowarea.__len__()):
-                anims.append(ReplacementTransform(nowarea[i] , VGroup(nextarea[i*2] , nextarea[(i*2) + 1]) ))
+            for j in range(nowarea.__len__()):
+                anims.append(ReplacementTransform(nowarea[j] , VGroup(nextarea[j*2] , nextarea[(j*2) + 1]) ))
         
-            self.play(AnimationGroup(*anims , lag_ratio=0.09) , run_time = 1 , rate_func = linear)
+            self.play(AnimationGroup(*anims , lag_ratio=0.08) , run_time = 1 , rate_func = linear)
 
             nowarea = nextarea
-            self.wait(0.4)
+            self.wait(0.5)
 
 
 
@@ -214,7 +213,7 @@ class Scene3(Scene):
                                                                    final_area[(i*8) + 7]) 
                                                                 ))
         
-        self.play(AnimationGroup(*anims , lag_ratio=0.005) , run_time = 1 , rate_func=linear)
+        self.play(AnimationGroup(*anims , lag_ratio=0.007) , run_time = 1 , rate_func=linear)
         self.wait()
         self.play(Transform(velocityCurve , linearVelocityCurve) , FadeOut(final_area) , TransformMatchingTex(veleqn , linearVelocityEqn) , FadeOut(voft))
         self.wait()
@@ -474,4 +473,149 @@ class Scene7(Scene):
         self.play(carImage.animate.shift(RIGHT * 4) , run_time = 0)
         self.wait(0.5)
         self.play(carImage.animate.shift(LEFT * 6) , run_time = 0)
+        self.wait()
+
+class Scene8(Scene):
+    def construct(self):
+        axes = Axes(
+            x_range=[-1 , 6 , 1],
+            x_length=10.5,
+            y_range=[0 , 40 , 10],
+            y_length=6,
+            axis_config={'include_tip':True , 'include_numbers':True , 'font_size':20 ,'line_to_number_buff':0.17, 'tip_height':0.2 , 'tip_width':0.2,
+                            'numbers_to_exclude':[-10 , -1]
+                        }
+        ).add_coordinates()
+        labels = axes.get_axis_labels(
+            Tex("Time(Sec)").scale(0.5), Tex("Velocity(m/s)" , color=BLUE).scale(0.5)
+        )
+        velocityCurve = axes.plot(velocityFunctionIntegral , x_range=[0 , 5] , stroke_width = 2.5 , color=BLUE)
+        voft = MathTex(r"v(" , r"t" , r")" , color= BLUE).scale(0.49).move_to(axes.coords_to_point(5.3 , 2))
+        voft[1].set_color(WHITE)
+
+        veleqn = MathTex(r"v(" , r"t" , r") = 5" , r"t" , r"(5-" , r"t" , r")" , color=BLUE).scale(0.7).move_to(axes.c2p(5 , 30))
+        veleqn[1].set_color(WHITE)
+        veleqn[3].set_color(WHITE)
+        veleqn[5].set_color(WHITE)
+
+
+        velocityCurve2 = axes.plot(velocityFunctionIntegral , x_range=[0 , 5] , stroke_width = 2.5 , color=BLUE , stroke_opacity=0.5)
+        voft2 = MathTex(r"v(" , r"t" , r")" , color= BLUE).scale(0.49).move_to(axes.coords_to_point(5.3 , 2))
+        voft2[1].set_color(WHITE)
+        voft2.set_opacity(0.5)
+
+        veleqn2 = MathTex(r"v(" , r"t" , r") = 5" , r"t" , r"(5-" , r"t" , r")" , color=BLUE).scale(0.7).move_to(axes.c2p(5 , 30))
+        veleqn2[1].set_color(WHITE)
+        veleqn2[3].set_color(WHITE)
+        veleqn2[5].set_color(WHITE)
+        veleqn2.set_opacity(0.5)
+
+        constantIntervalVelocityFunctionGraph = VGroup(*[
+            Line(
+                start=axes.c2p(i * 0.5, constantIntervalVelocityFunction(i * 0.5)),
+                end=axes.c2p((i + 1) * 0.5, constantIntervalVelocityFunction((i) * 0.5)),
+                color=BLUE_B,
+                stroke_width=2.5,
+            )
+            for i in range(10)
+        ])
+
+        dx_list = [0.5 , 0.25 , 0.125 , 0.0625 , 0.03125 , 1/64]
+
+        rectangles = VGroup(
+            *[
+                axes.get_riemann_rectangles(
+                    graph=velocityCurve,
+                    x_range=[0 , 5],
+                    stroke_width = 0,
+                    stroke_color=WHITE,
+                    dx=dx,
+                ).set_opacity(0.7)
+                    for dx in dx_list
+            ]
+        )
+
+        final_area = axes.get_riemann_rectangles(velocityCurve , x_range=[0 , 5] , dx = 1/512 , stroke_width=0).set_opacity(0.7)
+
+
+        flat_curve = axes.plot(lambda x:0 , x_range=[0,5])
+        flatrects = axes.get_riemann_rectangles(flat_curve , x_range=[0 , 5] , dx = dx_list[0])
+
+        vbrace = Brace(rectangles[0][1] , RIGHT)
+        hbrace = Brace(rectangles[0][1] , UP)
+
+        vbraceValue = Tex("11.25 m/s" , color=BLUE).scale(0.65).next_to(vbrace , RIGHT , buff=0.15)
+        hbraceValue = Tex("0.5 s").scale(0.65).next_to(hbrace , UP , buff=0.15)
+
+        self.add(axes , labels , velocityCurve2 , voft2 , veleqn2 , constantIntervalVelocityFunctionGraph)
+        self.play(FadeIn(rectangles[0][1]))
+        self.wait(0.5)
+        self.play(GrowFromCenter(vbrace , run_time = 0.5) , Write(vbraceValue , rate_func = linear))
+        self.wait(0.5)
+        self.play(GrowFromCenter(hbrace , run_time = 0.5) , Write(hbraceValue , rate_func = linear))
+        self.wait()
+
+
+        nowarea = rectangles[0]
+        anims = []
+        for i in range(nowarea.__len__()):
+            if (i == 1):
+                continue
+            anims.append(ReplacementTransform(flatrects[i] , nowarea[i]))
+        
+        self.wait()
+        self.play(AnimationGroup(*anims , lag_ratio=0.1) , run_time = 0.9 , rate_func=linear)
+        self.wait(1.5)
+        VGroup(hbrace , vbrace , hbraceValue , vbraceValue).set_opacity(0.7)
+        self.play(FadeOut(hbrace , vbrace , hbraceValue , vbraceValue , constantIntervalVelocityFunctionGraph) , FadeTransform(velocityCurve2 , velocityCurve) , FadeTransform(voft2 , voft) , FadeTransform(veleqn2 , veleqn))
+
+        self.wait(0.5)
+
+        for i in range(1 , len(dx_list)):
+            nextarea = rectangles[i]
+
+            anims = []
+            for j in range(nowarea.__len__()):
+                anims.append(ReplacementTransform(nowarea[j] , VGroup(nextarea[j*2] , nextarea[(j*2) + 1]) ))
+        
+            self.play(AnimationGroup(*anims , lag_ratio=0.08) , run_time = 1 , rate_func = linear)
+
+            nowarea = nextarea
+            self.wait(0.5)
+
+
+
+        # self.play(FadeTransform(nowarea , final_area))
+
+
+        anims = []
+        for i in range(nowarea.__len__()):
+            anims.append(ReplacementTransform(nowarea[i] , VGroup(final_area[i*8] ,
+                                                                   final_area[(i*8) + 1], 
+                                                                   final_area[(i*8) + 2], 
+                                                                   final_area[(i*8) + 3], 
+                                                                   final_area[(i*8) + 4], 
+                                                                   final_area[(i*8) + 5], 
+                                                                   final_area[(i*8) + 6], 
+                                                                   final_area[(i*8) + 7]) 
+                                                                ))
+        
+        self.play(AnimationGroup(*anims , lag_ratio=0.007) , run_time = 1 , rate_func=linear)
+        self.wait(2)
+
+
+        newrectangles = axes.get_riemann_rectangles(
+                    graph=velocityCurve,
+                    x_range=[0 , 5],
+                    stroke_width = 0.5,
+                    stroke_color=BLACK,
+                    dx=0.25,
+                ).set_opacity(0.7)
+        
+        self.play(ReplacementTransform(final_area , newrectangles))
+
+
+
+
+
         self.wait()
