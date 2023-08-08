@@ -1,10 +1,18 @@
 from manim import *
-# from manim_imports_ext import *
 from Derivatives import LineThroughPoints, positionFunction , velocityFunction
 
 
 def velocityFunctionIntegral(t):
     return 5 * t * (5-t)
+
+
+def constantIntervalVelocityFunction(t):
+    interval = int(t // 0.5)
+    if interval >= 10:
+        return 0
+    return velocityFunctionIntegral(interval * 0.5)
+
+
 
 class Scene1(Scene):
     def construct(self):
@@ -312,11 +320,143 @@ class Scene5(Scene):
 
         timetracker = ValueTracker(1)
         pointoncurve = always_redraw(lambda: Dot(axes.c2p(timetracker.get_value() , velocityFunctionIntegral(timetracker.get_value()) ) ))
-        alwayschangingtext = always_redraw(lambda: Tex("Always Changing!" , color=YELLOW) )
 
-        self.add(axes , velocityCurve , voft , veleqn , labels)        
-        self.play(DrawBorderThenFill(pointoncurve))
+        def mySpecialArrow():
+            a = axes.c2p(2.5 , 0)
+            b = axes.c2p(timetracker.get_value() , velocityFunctionIntegral(timetracker.get_value()))
+            abVector = [b[0] - a[0] , b[1] - a[1] , 0]
+            abNormalized = normalize(abVector)
+            scaleFactor = 0.8
+            abNormalized = [value*scaleFactor for value in abNormalized]
+            c = [b[0] + abNormalized[0] , b[1] + abNormalized[1] , 0]
 
-        self.play(timetracker.animate.set_value(4.5) , run_time = 2)
+            arrow = Arrow(LEFT*0.85 , RIGHT*0.85 , stroke_width=2 , max_tip_length_to_length_ratio=0.15).move_to(c).rotate(angle_of_vector(abVector) + PI)
+
+
+            return arrow
+
+
+
+        arrow = always_redraw(mySpecialArrow)
+        alwaysChangingText = always_redraw(lambda: Tex("Always Changing!" , color=YELLOW).scale(0.7).next_to(arrow.get_start() , UP) )
+
+
+        self.add(axes , velocityCurve , voft , veleqn , labels)
+        self.play(DrawBorderThenFill(pointoncurve) , GrowArrow(arrow) , Write(alwaysChangingText) , run_time = 0.6)
+
+        self.play(timetracker.animate.set_value(4.5) , run_time = 1.6)
+        self.play(timetracker.animate.set_value(0.5) , run_time = 1.6)
+        self.wait()
+        self.play(FadeOut(alwaysChangingText , arrow , pointoncurve) , run_time = 0.5)
 
         self.wait()
+
+class Scene6(Scene):
+    def construct(self):
+        axes = Axes(
+            x_range=[-1 , 6 , 1],
+            x_length=10.5,
+            y_range=[0 , 40 , 10],
+            y_length=6,
+            axis_config={'include_tip':True , 'include_numbers':True , 'font_size':20 ,'line_to_number_buff':0.17, 'tip_height':0.2 , 'tip_width':0.2,
+                            'numbers_to_exclude':[-10 , -1]
+                        }
+        ).add_coordinates()
+        labels = axes.get_axis_labels(
+            Tex("Time(Sec)").scale(0.5), Tex("Velocity(m/s)" , color=BLUE).scale(0.5)
+        )
+        velocityCurve = axes.plot(velocityFunctionIntegral , x_range=[0 , 5] , stroke_width = 2.5 , color=BLUE)
+        voft = MathTex(r"v(" , r"t" , r")" , color= BLUE).scale(0.49).move_to(axes.coords_to_point(5.3 , 2))
+        voft[1].set_color(WHITE)
+
+        veleqn = MathTex(r"v(" , r"t" , r") = 5" , r"t" , r"(5-" , r"t" , r")" , color=BLUE).scale(0.7).move_to(axes.c2p(5 , 30))
+        veleqn[1].set_color(WHITE)
+        veleqn[3].set_color(WHITE)
+        veleqn[5].set_color(WHITE)
+
+
+        velocityCurve2 = axes.plot(velocityFunctionIntegral , x_range=[0 , 5] , stroke_width = 2.5 , color=BLUE , stroke_opacity=0.5)
+        voft2 = MathTex(r"v(" , r"t" , r")" , color= BLUE).scale(0.49).move_to(axes.coords_to_point(5.3 , 2))
+        voft2[1].set_color(WHITE)
+        voft2.set_opacity(0.5)
+
+        veleqn2 = MathTex(r"v(" , r"t" , r") = 5" , r"t" , r"(5-" , r"t" , r")" , color=BLUE).scale(0.7).move_to(axes.c2p(5 , 30))
+        veleqn2[1].set_color(WHITE)
+        veleqn2[3].set_color(WHITE)
+        veleqn2[5].set_color(WHITE)
+        veleqn2.set_opacity(0.5)
+
+
+
+        constantIntervalVelocityFunctionGraph = VGroup(*[
+            Line(
+                start=axes.c2p(i * 0.5, constantIntervalVelocityFunction(i * 0.5)),
+                end=axes.c2p((i + 1) * 0.5, constantIntervalVelocityFunction((i) * 0.5)),
+                color=BLUE_B,
+                stroke_width=2.5,
+            )
+            for i in range(10)
+        ])
+
+        dot = Dot(axes.c2p(0.5,0) , color=YELLOW , radius=DEFAULT_SMALL_DOT_RADIUS)
+        line = constantIntervalVelocityFunctionGraph[0].copy().set_color(YELLOW)
+
+
+
+        self.add(axes , labels , velocityCurve , voft , veleqn)
+        self.wait(0.5)
+        self.play(FadeTransform(velocityCurve , velocityCurve2) , FadeTransform(veleqn , veleqn2) , FadeTransform(voft , voft2) , run_time = 0.5)
+        anims = [Create(constantIntervalVelocityFunctionGraph[i]) for i in range(constantIntervalVelocityFunctionGraph.__len__())]
+        self.play(AnimationGroup(*anims , lag_ratio=0.3) , run_time = 1.385)
+        self.wait()
+        self.play(Create(line) , run_time = 0.8)
+        self.wait(0.5)
+        self.play(ReplacementTransform(line , dot) , run_time = 1/3)
+
+        line = constantIntervalVelocityFunctionGraph[1].copy().set_color(YELLOW)
+        dot2 = Dot(line.get_start() , color=YELLOW , radius = DEFAULT_SMALL_DOT_RADIUS)
+
+        self.play(Transform(dot , dot2) , run_time = 1/3)
+        self.play(ReplacementTransform(dot , line) , run_time = 1/3)
+
+
+        self.wait(0.5)
+        dot = Dot(line.get_end() , color=YELLOW , radius=DEFAULT_SMALL_DOT_RADIUS)
+        self.play(ReplacementTransform(line , dot) , run_time = 1/3)
+
+        line = constantIntervalVelocityFunctionGraph[2].copy().set_color(YELLOW)
+        dot2 = Dot(line.get_start() , color=YELLOW , radius = DEFAULT_SMALL_DOT_RADIUS)
+
+        self.play(Transform(dot , dot2) , run_time = 1/3)
+        self.play(ReplacementTransform(dot , line) , run_time = 1/3)
+
+
+
+        self.wait(0.5)
+        dot = Dot(line.get_end() , color=YELLOW , radius=DEFAULT_SMALL_DOT_RADIUS)
+        self.play(ReplacementTransform(line , dot) , run_time = 1/3)
+
+        line = constantIntervalVelocityFunctionGraph[3].copy().set_color(YELLOW)
+        dot2 = Dot(line.get_start() , color=YELLOW , radius = DEFAULT_SMALL_DOT_RADIUS)
+
+        self.play(Transform(dot , dot2) , run_time = 1/3)
+        self.play(ReplacementTransform(dot , line) , run_time = 1/3)
+
+
+
+        self.wait(0.5)
+        dot = Dot(line.get_end() , color=YELLOW , radius=DEFAULT_SMALL_DOT_RADIUS)
+        self.play(ReplacementTransform(line , dot) , run_time = 1/3)
+
+        line = constantIntervalVelocityFunctionGraph[4].copy().set_color(YELLOW)
+        dot2 = Dot(line.get_start() , color=YELLOW , radius = DEFAULT_SMALL_DOT_RADIUS)
+
+        self.play(Transform(dot , dot2) , run_time = 1/3)
+        self.play(ReplacementTransform(dot , line) , run_time = 1/3)
+        self.wait()
+
+
+
+class Scene7(Scene):
+    def construct(self):
+        pass
