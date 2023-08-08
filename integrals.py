@@ -459,4 +459,19 @@ class Scene6(Scene):
 
 class Scene7(Scene):
     def construct(self):
-        pass
+        carImage = ImageMobject("./car.png").scale(0.04)
+        line = Line(start=LEFT * 5.4 , end=RIGHT * 5.4 , stroke_width=2 , color=RED).next_to(carImage , DOWN , buff=0)
+        carImage.shift(LEFT * 5.4)
+
+        self.add(carImage , line)
+        self.wait(0.7)
+        self.play(carImage.animate.shift(RIGHT * 2.8) , run_time = 2.8 , rate_func = linear)
+        self.play(carImage.animate.shift(RIGHT * 3.8) , run_time = 1.15 , rate_func = linear)
+        self.play(carImage.animate.shift(RIGHT * 4.2) , run_time = 0.5 , rate_func = linear)
+        self.wait(0.5)
+        self.play(carImage.animate.shift(LEFT * 7) , run_time = 0)
+        self.wait(0.5)
+        self.play(carImage.animate.shift(RIGHT * 4) , run_time = 0)
+        self.wait(0.5)
+        self.play(carImage.animate.shift(LEFT * 6) , run_time = 0)
+        self.wait()
