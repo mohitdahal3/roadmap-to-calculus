@@ -612,10 +612,159 @@ class Scene8(Scene):
                     dx=0.25,
                 ).set_opacity(0.7)
         
-        self.play(ReplacementTransform(final_area , newrectangles))
+        self.play(ReplacementTransform(final_area , newrectangles , run_time = 1, lag_ratio = 0.0003))
+
+        self.wait()
+
+
+class Scene9(Scene):
+    def construct(self):
+        axes = Axes(
+            x_range=[-1 , 6 , 1],
+            x_length=10.5,
+            y_range=[0 , 40 , 10],
+            y_length=6,
+            axis_config={'include_tip':True , 'include_numbers':True , 'font_size':20 ,'line_to_number_buff':0.17, 'tip_height':0.2 , 'tip_width':0.2,
+                            'numbers_to_exclude':[-10 , -1]
+                        }
+        ).add_coordinates()
+        labels = axes.get_axis_labels(
+            Tex("Time(Sec)").scale(0.5), Tex("Velocity(m/s)" , color=BLUE).scale(0.5)
+        )
+        velocityCurve = axes.plot(velocityFunctionIntegral , x_range=[0 , 5] , stroke_width = 2.5 , color=BLUE)
+        voft = MathTex(r"v(" , r"t" , r")" , color= BLUE).scale(0.49).move_to(axes.coords_to_point(5.3 , 2))
+        voft[1].set_color(WHITE)
+
+        veleqn = MathTex(r"v(" , r"t" , r") = 5" , r"t" , r"(5-" , r"t" , r")" , color=BLUE).scale(0.7).move_to(axes.c2p(5 , 30))
+        veleqn[1].set_color(WHITE)
+        veleqn[3].set_color(WHITE)
+        veleqn[5].set_color(WHITE)
+
+        rectangles = axes.get_riemann_rectangles(
+                    graph=velocityCurve,
+                    x_range=[0 , 5],
+                    stroke_width = 0.5,
+                    stroke_color=BLACK,
+                    dx=0.25,
+                ).set_opacity(0.7)
+        
+        ticks = VGroup()
+        i = 0
+        while (i <= 5):
+            ticks.add(Line(start=axes.coords_to_point(i , 1) , end=axes.coords_to_point(i , -1) , stroke_width=2 , color=YELLOW))
+            i += 0.25
+
+        brace = Brace(rectangles[4] , DOWN , buff = SMALL_BUFF , sharpness=3)
+        braceValue = MathTex(r"\Delta t").scale(0.5).next_to(brace , DOWN , buff=SMALL_BUFF)
+        dtValue = MathTex(r"\Delta t" , r" = " , r"0.25").to_corner(UR , buff=0.7).scale(0.7)
+        dtValue[2].set_color(YELLOW)
+        downBrace = VGroup(brace , braceValue)
+
+        lArrow = Arrow(axes.c2p(0.5,5) , axes.c2p(1,0) , stroke_width=2 , max_tip_length_to_length_ratio=0.2 , buff=0.08)
+        ltext = Tex("t = 1" , color=YELLOW).scale(0.7).next_to(lArrow.get_start() , UP , buff=SMALL_BUFF)
+
+        rArrow = Arrow(axes.c2p(1.75,5) , axes.c2p(1.25,0) , stroke_width=2 , max_tip_length_to_length_ratio=0.2 , buff=0.08)
+        rtext = Tex("t = 1.25" , color=YELLOW).scale(0.7).next_to(rArrow.get_start() , UP , buff=SMALL_BUFF)
+
+
+        leftHeight = Line(start = axes.c2p(1,0) , end = axes.c2p(1,20) , color=YELLOW , stroke_width=2)
+        rightHeight = Line(start = axes.c2p(1.25,0) , end = axes.c2p(1.25,velocityFunctionIntegral(1.25)) , color=YELLOW , stroke_width=2)
+
+        downWidth = DashedLine(start = leftHeight.get_end() , end = axes.c2p(0 , 20) , stroke_width=2)
+        upWidth = DashedLine(start = rightHeight.get_end() , end = axes.c2p(0 , velocityFunctionIntegral(1.25)) , stroke_width=2)
+        increasedVelocityText = Tex("23.437").scale(0.45).next_to(upWidth.get_end() , LEFT , buff=0.1)
+
+        tEquals1toEqnarrow = Arrow(axes.c2p(3.5,25) , axes.c2p(4.2,29) , stroke_width=2 , max_tip_length_to_length_ratio=0.14 , buff=0)
+        tEquals1toEqntext = Tex("t = 1" , color=YELLOW).scale(0.7).next_to(tEquals1toEqnarrow.get_start() , LEFT , buff=SMALL_BUFF)
+        tEquals125toEqntext = Tex("t = 1.25" , color=YELLOW).scale(0.7).next_to(tEquals1toEqnarrow.get_start() , LEFT , buff=SMALL_BUFF)
+
+        longerRectangle = axes.get_riemann_rectangles(
+                    graph=axes.plot(lambda t:23.4375 , x_range=[0,5]),
+                    x_range=[0 , 5],
+                    stroke_width = 0.5,
+                    stroke_color=BLACK,
+                    dx=0.25,
+                ).set_opacity(0.7)[4]
+
+        answerArrow = Arrow(axes.c2p(1.75 , 17) , axes.c2p(1.125 , 17) , buff=0 , max_tip_length_to_length_ratio=0.16 , stroke_width=3)
+        answerText = MathTex(r"20 m/s \times 0.25s = 5m").scale(0.7).next_to(answerArrow , RIGHT)
+        errorTriangle = Polygon(axes.c2p(1,20) , axes.c2p(1.25 , 23.4375) , axes.c2p(1.25 , 20) , stroke_width=0.5 , color=RED , fill_color=RED , fill_opacity=0.7 , stroke_opacity=0.7)
+
+
+        vbrace = Brace(rectangles[5] , LEFT , buff = SMALL_BUFF , sharpness=2)
+        vbraceText = MathTex(r"v(t)").scale(0.7).next_to(vbrace , LEFT , buff=SMALL_BUFF)
+        VbraceGroup = VGroup(vbrace , vbraceText)
+
+        self.add(axes , labels , velocityCurve , voft , veleqn , rectangles)
+        self.wait()
+
+        anims = []
+        for i in range(ticks.__len__()):
+            anims.append(Create(ticks[i]))
+        
+        self.play(AnimationGroup(*anims , lag_ratio=0.35) , run_time = 0.55)
+        self.wait()
+        self.play(GrowFromCenter(brace) , Write(braceValue))
+        self.wait()
+        self.play(TransformFromCopy(braceValue , dtValue[0]))
+        self.play(Write(VGroup(dtValue[1] , dtValue[2])))
+
+        anims = []
+        for i in range(rectangles.__len__()):
+            if(i==4):
+                continue
+            anims.append(rectangles[i].animate.set_opacity(0.2))
+
+        self.play(AnimationGroup(*anims , lag_ratio=0) , run_time = 0.65)
+        self.wait(0.4)
+        self.play(FadeIn(lArrow , ltext) , run_time = 0.3)
+        self.wait(0.7)
+        self.play(FadeIn(rArrow , rtext) , run_time = 0.3)
+        self.wait()
+
+        self.play(Create(leftHeight) , run_time = 1)
+        self.play(Create(downWidth) , run_time = 0.7)
+
+        self.wait(0.5)
+        self.play(Create(rightHeight) , run_time = 1)
+        self.play(Create(upWidth), Write(increasedVelocityText) , run_time = 0.7)
+
+        self.play(TransformFromCopy(lArrow , tEquals1toEqnarrow) , TransformFromCopy(ltext , tEquals1toEqntext))
+        self.wait(0.4)
+        self.play(Transform(tEquals1toEqntext , tEquals125toEqntext) , run_time = 0.85)
+        self.play(FadeOut(tEquals1toEqnarrow , tEquals1toEqntext))
+
+        self.wait(2)
 
 
 
+        self.play(Indicate(rectangles[4] , scale_factor=1))
+        self.wait()
+        self.play(Transform(rectangles[4] , longerRectangle) , rate_func = there_and_back , run_time = 2.4)
+
+        otherclip = Text("Put the other clip")
+        self.wait()
+        self.add(otherclip)
+        self.wait()
+        self.remove(otherclip)
+        self.wait()
+
+        self.play(Uncreate(rightHeight) , FadeOut(upWidth , increasedVelocityText) , run_time = 0.6)
+        self.wait(0.5)
+        
+        self.play(FadeIn(answerArrow , run_time = 0.7) , Write(answerText , rate_func=linear , run_time = 3))
+        self.play(DrawBorderThenFill(errorTriangle))
+        self.wait(0.5)
+        self.play(FadeOut(errorTriangle))
+        self.wait()
+        self.play(FadeIn(VbraceGroup) , FadeOut(leftHeight , downWidth , answerArrow , answerText , lArrow , rArrow , ltext , rtext) , downBrace.animate.next_to(rectangles[5] , DOWN , buff=SMALL_BUFF) , rectangles[4].animate.set_opacity(0.2) , rectangles[5].animate.set_opacity(0.7))
+
+
+        self.wait(0.5)
+        for i in range(6 , 14):
+            #I can probably refactor this line but it works so who cares!
+            self.play(Transform(vbrace , Brace(rectangles[i] , LEFT , buff = SMALL_BUFF , sharpness=2)), Transform(vbraceText , MathTex(r"v(t)").scale(0.7).next_to(Brace(rectangles[i] , LEFT , buff = SMALL_BUFF , sharpness=2) , LEFT , buff=SMALL_BUFF)) ,downBrace.animate.next_to(rectangles[i] , DOWN , buff=SMALL_BUFF) , rectangles[i-1].animate.set_opacity(0.2) , rectangles[i].animate.set_opacity(0.7))
+            self.wait(0.5)
 
 
         self.wait()
