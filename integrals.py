@@ -924,4 +924,60 @@ class Scene10(Scene):
 
 class Scene11(Scene):
     def construct(self):
-        pass
+        axes = Axes(
+            x_range=[-1 , 6 , 1],
+            x_length=10.5,
+            y_range=[0 , 40 , 10],
+            y_length=6,
+            axis_config={'include_tip':True , 'include_numbers':True , 'font_size':20 ,'line_to_number_buff':0.17, 'tip_height':0.2 , 'tip_width':0.2,
+                            'numbers_to_exclude':[-10 , -1]
+                        }
+        ).add_coordinates()
+        labels = axes.get_axis_labels(
+            Tex("Time(Sec)").scale(0.5), Tex("Velocity(m/s)" , color=BLUE).scale(0.5)
+        )
+        velocityCurve = axes.plot(velocityFunctionIntegral , x_range=[0 , 5] , stroke_width = 2.5 , color=BLUE)
+        voft = MathTex(r"v(" , r"t" , r")" , color= BLUE).scale(0.49).move_to(axes.coords_to_point(5.3 , 2))
+        voft[1].set_color(WHITE)
+
+        veleqn = MathTex(r"v(" , r"t" , r") = 5" , r"t" , r"(5-" , r"t" , r")" , color=BLUE).scale(0.7).move_to(axes.c2p(5 , 30)).shift(DOWN * 0.25)
+        veleqn[1].set_color(WHITE)
+        veleqn[3].set_color(WHITE)
+        veleqn[5].set_color(WHITE)
+
+        timeTracker = ValueTracker(3.5)
+        area_under_curve = always_redraw(lambda: axes.get_area(velocityCurve , x_range=[0 , timeTracker.get_value()] , opacity=0.7 , stroke_width=0) )
+        time_Tracker_line = always_redraw(lambda: Line(start=axes.c2p(timeTracker.get_value() , 0) , end=axes.c2p(timeTracker.get_value() , velocityFunctionIntegral(timeTracker.get_value())) , stroke_width=3 , color=YELLOW))
+        little_triangle = always_redraw(lambda: Triangle(color = WHITE, fill_color=WHITE , fill_opacity=1 , stroke_width=0).scale(0.15).next_to(axes.c2p(timeTracker.get_value() , 0) , DOWN , buff=0))
+        time_variable_text = always_redraw(lambda: MathTex("T").scale(0.6).next_to(axes.c2p(timeTracker.get_value() , -1.5) , DOWN , buff=SMALL_BUFF))
+
+        integral_eqn = MathTex(r"s(" , r"t" , r")" , r" = " , r"\int" , r"_{0}^{T}" , r"v(" , r"t" , r")" , r"\; dt").scale(0.75).shift(UP * 2.6 + RIGHT*1.7)
+        integral_eqn[0].set_color(RED)
+        integral_eqn[2].set_color(RED)
+        integral_eqn[6].set_color(BLUE)
+        integral_eqn[8].set_color(BLUE)
+
+        small_area = axes.get_area(velocityCurve , x_range=[3.5 , 3.65] , opacity=0.7 , stroke_width=0)
+
+        self.add(axes , labels , voft , veleqn , velocityCurve)
+        self.play(FadeIn(area_under_curve))
+        self.play(DrawBorderThenFill(little_triangle) , Create(time_Tracker_line) , Write(time_variable_text))
+        self.wait(0.5)
+        self.play(timeTracker.animate.set_value(5))
+        self.wait(0.5)
+        self.play(timeTracker.animate.set_value(1.5))
+        self.wait(0.5)
+        self.play( Write(VGroup(integral_eqn[4] , integral_eqn[6] , integral_eqn[7] , integral_eqn[8] , integral_eqn[9])) , rate_func = linear , run_time = 2)
+        self.wait(0.2)
+        self.play(Write(integral_eqn[5]))
+        self.wait()
+        self.play(Write(VGroup(integral_eqn[0] , integral_eqn[1] , integral_eqn[2], integral_eqn[3])))
+        self.wait()
+        self.play(timeTracker.animate.set_value(3.5))
+        self.wait(0.5)
+        self.play(timeTracker.animate.set_value(3.65))
+        area_under_curve.become(axes.get_area(velocityCurve , x_range=[0 , 3.5] , opacity=0.7 , stroke_width=0) )
+
+        self.play(area_under_curve.animate.set_opacity(0.2) , FadeIn(small_area))
+
+        self.wait()
