@@ -762,9 +762,166 @@ class Scene9(Scene):
 
         self.wait(0.5)
         for i in range(6 , 14):
-            #I can probably refactor this line but it works so who cares!
+            #I can probably refactor this line but it works! so who cares
             self.play(Transform(vbrace , Brace(rectangles[i] , LEFT , buff = SMALL_BUFF , sharpness=2)), Transform(vbraceText , MathTex(r"v(t)").scale(0.7).next_to(Brace(rectangles[i] , LEFT , buff = SMALL_BUFF , sharpness=2) , LEFT , buff=SMALL_BUFF)) ,downBrace.animate.next_to(rectangles[i] , DOWN , buff=SMALL_BUFF) , rectangles[i-1].animate.set_opacity(0.2) , rectangles[i].animate.set_opacity(0.7))
             self.wait(0.5)
 
 
         self.wait()
+
+
+class Scene10(Scene):
+    def construct(self):
+        axes = Axes(
+            x_range=[-1 , 6 , 1],
+            x_length=10.5,
+            y_range=[0 , 40 , 10],
+            y_length=6,
+            axis_config={'include_tip':True , 'include_numbers':True , 'font_size':20 ,'line_to_number_buff':0.17, 'tip_height':0.2 , 'tip_width':0.2,
+                            'numbers_to_exclude':[-10 , -1]
+                        }
+        ).add_coordinates()
+        labels = axes.get_axis_labels(
+            Tex("Time(Sec)").scale(0.5), Tex("Velocity(m/s)" , color=BLUE).scale(0.5)
+        )
+        velocityCurve = axes.plot(velocityFunctionIntegral , x_range=[0 , 5] , stroke_width = 2.5 , color=BLUE)
+        voft = MathTex(r"v(" , r"t" , r")" , color= BLUE).scale(0.49).move_to(axes.coords_to_point(5.3 , 2))
+        voft[1].set_color(WHITE)
+
+        veleqn = MathTex(r"v(" , r"t" , r") = 5" , r"t" , r"(5-" , r"t" , r")" , color=BLUE).scale(0.7).move_to(axes.c2p(5 , 30))
+        veleqn[1].set_color(WHITE)
+        veleqn[3].set_color(WHITE)
+        veleqn[5].set_color(WHITE)
+
+        rectangles = axes.get_riemann_rectangles(
+                    graph=velocityCurve,
+                    x_range=[0 , 5],
+                    stroke_width = 0.5,
+                    stroke_color=BLACK,
+                    dx=0.25,
+                ).set_opacity(0.2)
+
+        rectangles[13].set_opacity(0.7)
+
+        ticks = VGroup()
+        i = 0
+        while (i <= 5):
+            ticks.add(Line(start=axes.coords_to_point(i , 1) , end=axes.coords_to_point(i , -1) , stroke_width=2 , color=YELLOW))
+            i += 0.25
+
+        brace = Brace(rectangles[13] , DOWN , buff = SMALL_BUFF , sharpness=3)
+        braceValue = MathTex(r"\Delta t").scale(0.5).next_to(brace , DOWN , buff=SMALL_BUFF)
+        dtValue = MathTex(r"\Delta t" , r" = " , r"0.25").to_corner(UR , buff=0.7).scale(0.7)
+        dtValue[2].set_color(YELLOW)
+        downBrace = VGroup(brace , braceValue)
+
+        vbrace = Brace(rectangles[13] , LEFT , buff = SMALL_BUFF , sharpness=2)
+        vbraceText = MathTex(r"v(t)").scale(0.7).next_to(vbrace , LEFT , buff=SMALL_BUFF)
+        VbraceGroup = VGroup(vbrace , vbraceText)
+
+        sigma_sum_eqn = MathTex(r"\sum" , r"_{t=0}" , r"^{5}" , r"v(t) \; " , r"\Delta t").scale(0.7).to_corner(UR , buff=0.5).shift(LEFT * 0.5)
+        integral_sum_eqn = MathTex(r"\int" , r"_{0}^{5} v(t) \; \Delta t").scale(0.7).to_corner(UR , buff=0.5).shift(LEFT * 0.5)
+        del_t_box = DashedVMobject(Rectangle(stroke_width = 1 , color=YELLOW , height=0.5 , width=1), num_dashes=30).next_to(integral_sum_eqn , DOWN)
+        del_t_to_0 = MathTex(r"\Delta t \to 0" , color=YELLOW).scale(0.55).move_to(del_t_box)
+        integral_sum_eqn_with_dt = MathTex(r"\int" , r"_{0}^{5} v(t) \; dt").scale(0.7).to_corner(UR , buff=0.5).shift(LEFT * 0.5)
+        dt_equals = Tex("dt = ").scale(0.55).next_to(del_t_box , LEFT , buff=0.15)
+
+        canvas = Rectangle(color=BLACK , height=10 , width=16 , stroke_width = 0).set_opacity(0.8)
+        centered_integral_sum_eqn_with_dt = MathTex(r"\int" , r"_{0}^{5} v(t) \; dt").scale(1.1)
+
+
+        one_hard_problem_text = Tex("One hard problem" , color=BLUE).shift(UP * 1.5)
+        another_hard_problem_text = Tex("Another hard problem").shift(DOWN * 1.5)
+        into_arrow = Arrow(UP * 1.5 , DOWN * 1.5 , buff=MED_LARGE_BUFF , stroke_width=2 , max_tip_length_to_length_ratio=0.1)
+
+        dont_worry_text = Tex("But don't worry!")
+
+        self.add(axes , labels , ticks , downBrace , dtValue , velocityCurve , rectangles , veleqn , VbraceGroup , voft)
+        self.wait()
+
+        self.play(FadeOut(dtValue , run_time = 0.5) , Write(VGroup(sigma_sum_eqn[1] , sigma_sum_eqn[2]) , run_time = 2 , rate_func = linear))
+        self.play(Write(sigma_sum_eqn[0]))
+        self.play(TransformFromCopy(vbraceText , sigma_sum_eqn[3]))
+        self.wait(0.3)
+        self.play(TransformFromCopy(braceValue , sigma_sum_eqn[4]))
+
+        self.wait(0.3)
+        self.play(Indicate(sigma_sum_eqn[4]))
+        self.wait(0.5)
+        self.play(Circumscribe(sigma_sum_eqn[0] , Circle , time_width=4 , stroke_width=1 , run_time = 2) , Circumscribe(sigma_sum_eqn[2] , Circle , time_width=4 , stroke_width=1 , run_time = 2))
+
+        self.play(sigma_sum_eqn.animate.shift(LEFT * 3.5).set_color(RED))
+        self.play(Write(integral_sum_eqn) , run_time = 3 , rate_func = linear)
+
+        self.wait(0.5)
+        self.play(Indicate(integral_sum_eqn[0] , scale_factor=1.3))
+        self.play(veleqn.animate.shift(DOWN * 0.25) , FadeIn(del_t_box) , Write(del_t_to_0))
+        self.wait(0.5)
+        self.play(TransformMatchingTex(integral_sum_eqn , integral_sum_eqn_with_dt) , FadeIn(dt_equals))
+
+        self.wait(0.5)
+        self.play(rectangles.animate.set_opacity(0.7), FadeOut(VbraceGroup , sigma_sum_eqn, ticks))
+
+
+
+
+        dx_list = [0.5 , 0.125 , 0.0625 , 0.03125 , 1/64]
+        rectangleslist = VGroup(
+            *[
+                axes.get_riemann_rectangles(
+                    graph=velocityCurve,
+                    x_range=[0 , 5],
+                    stroke_width = 0.01,
+                    stroke_color=WHITE,
+                    dx=dx,
+                ).set_opacity(0.7)
+                    for dx in dx_list
+            ]
+        )
+        final_area = axes.get_riemann_rectangles(velocityCurve , x_range=[0 , 5] , dx = 1/512 , stroke_width=0).set_opacity(0.7)
+
+        nowarea = rectangles
+
+        self.wait(0.5)
+        for i in range(1 , len(dx_list)):
+            nextarea = rectangleslist[i]
+            anims = []
+            for j in range(nowarea.__len__()):
+                # anims.append(AnimationGroup(ReplacementTransform(nowarea[j] , VGroup(nextarea[j*2] , nextarea[(j*2) + 1])) , Transform(brace , Brace(rectangleslist[j*2] , DOWN , buff = SMALL_BUFF , sharpness=3)) , lag_ratio=0))
+                anims.append(ReplacementTransform(nowarea[j] , VGroup(nextarea[j*2] , nextarea[(j*2) + 1])) )
+        
+            self.play(AnimationGroup(*anims , lag_ratio=0.08 , rate_func=linear), brace.animate.scale([0.5 , 1 , 1]).shift(LEFT * (dx_list[i]/2)) , braceValue.animate.shift(LEFT * (dx_list[i]/2)) , run_time = 1)
+
+            nowarea = nextarea
+            self.wait(0.5)
+
+        anims = []
+        for i in range(nowarea.__len__()):
+            anims.append(ReplacementTransform(nowarea[i] , VGroup(final_area[i*8] ,
+                                                                   final_area[(i*8) + 1], 
+                                                                   final_area[(i*8) + 2], 
+                                                                   final_area[(i*8) + 3], 
+                                                                   final_area[(i*8) + 4], 
+                                                                   final_area[(i*8) + 5], 
+                                                                   final_area[(i*8) + 6], 
+                                                                   final_area[(i*8) + 7]) 
+                                                                ))
+        
+        self.play(AnimationGroup(*anims , lag_ratio=0.007 , rate_func=linear), brace.animate.scale([0,1,1]).shift(LEFT * 1/512), braceValue.animate.shift(LEFT * 1/512) , run_time = 1)
+        self.wait(1)
+        # self.play(AnimationGroup(FadeIn(canvas , run_time = 0.3) , TransformFromCopy(integral_sum_eqn_with_dt , centered_integral_sum_eqn_with_dt , run_time = 1) , lag_ratio=0.9))
+        self.play(FadeIn(canvas , run_time = 0.3))
+        self.play(TransformFromCopy(integral_sum_eqn_with_dt , centered_integral_sum_eqn_with_dt , run_time = 1))
+        self.wait(1)
+        self.play(Write(one_hard_problem_text , run_time = 1) , FadeOut(centered_integral_sum_eqn_with_dt))
+        self.play(GrowArrow(into_arrow))
+        self.play(Write(another_hard_problem_text) , run_time = 1)
+        self.wait(0.3)
+        self.play(FadeOut(one_hard_problem_text , another_hard_problem_text , into_arrow , run_time = 0.4) , Write(dont_worry_text))
+        self.wait()
+
+
+
+class Scene11(Scene):
+    def construct(self):
+        pass
