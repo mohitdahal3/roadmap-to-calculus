@@ -1023,3 +1023,80 @@ class Scene11(Scene):
         self.play(Indicate(smallDistanceTextAlt[3]))
 
         self.wait()
+
+class Scene12(Scene):
+    def construct(self):
+        distanceEqn1 = MathTex("???" , color=RED).shift(LEFT * 1.5).scale(0.8)
+        velEqn1 = MathTex(r"5t(5-t)" , color=BLUE).shift(RIGHT * 1.5).scale(0.8)
+
+
+        upperArrow = CurvedArrow(LEFT * 1.5 + UP*0.5 , RIGHT * 1.5 + UP*0.5 , radius = -1.7).set_color(BLUE)
+        lowerArrow = CurvedArrow(RIGHT * 1.5 + DOWN*0.5 , LEFT * 1.5 + DOWN*0.5 , radius = -1.7).set_color(RED)
+        uptext = Tex("Derivative" , color=BLUE).scale(0.7).shift(UP * 2)
+        downtext = Tex("Anti-Derivative" , color=RED).scale(0.7).shift(DOWN * 2)
+        setup = VGroup(upperArrow , lowerArrow , uptext , downtext)
+        setup2 = setup.copy()
+
+        veleqn2 = MathTex(r"25t" , r"-5t^{2}" , color=BLUE).shift(RIGHT * 1.5).scale(0.8)
+        veleqn2Copy = MathTex(r"25t" , r"-5t^{2}" , color=BLUE).shift(RIGHT * 1.5).scale(0.8)
+        veleqn3_1 = MathTex(r"25t" , color=BLUE).shift(RIGHT * 1.5).scale(0.8)
+        veleqn3_2 = MathTex(r"-5t^2" , color=BLUE).to_corner(UR , buff=1).scale(0.8)
+
+        distanceEqn2 = MathTex(r"t^{2}" , color=RED).shift(LEFT * 1.5).scale(0.8)
+        distanceEqn3 = MathTex(r"25t^{2}" , color=RED).shift(LEFT * 1.5).scale(0.8)
+        distanceEqn4 = MathTex(r"{25t^{2} \over 2}" , color=RED).shift(LEFT * 1.5).scale(0.75)
+        distanceEqn5 = MathTex(r"t^{3}" , color=RED).shift(LEFT * 1.5).scale(0.8)
+        distanceEqn6 = MathTex(r"-5t^{3}" , color=RED).shift(LEFT * 1.5).scale(0.8)
+        distanceEqn7 = MathTex(r"-{5t^{3} \over 3}" , color=RED).shift(LEFT * 1.5).scale(0.75)
+
+        distanceEqn8 = MathTex(r"{25t^{2} \over 2}" , r"-{5t^{3} \over 3}" , color=RED).shift(LEFT * 1.5).scale(0.75)
+
+        veleqn4 = MathTex(r"2t", color=BLUE).shift(RIGHT * 1.5).scale(0.8)
+        veleqn5 = MathTex(r"25 \times 2t", color=BLUE).shift(RIGHT * 1.5).scale(0.8)
+        veleqn6 = MathTex(r"{25 \times 2t \over 2}", color=BLUE).shift(RIGHT * 1.5).scale(0.75)
+        veleqn7 = MathTex(r"3t^{2}", color=BLUE).shift(RIGHT * 1.5).scale(0.8)
+        veleqn8 = MathTex(r"-5 \times 3t^{2}", color=BLUE).shift(RIGHT * 1.5).scale(0.8)
+        veleqn9 = MathTex(r"-{5 \times 3t^{2} \over 3}", color=BLUE).shift(RIGHT * 1.5).scale(0.75)
+
+        term1antiderivative = VGroup(setup , veleqn2[0] , distanceEqn4)
+
+        self.add(distanceEqn1 , velEqn1)
+        self.play(Create(upperArrow) , Create(lowerArrow) , run_time = 0.5)
+        self.play(Write(uptext) , Write(downtext) , run_time = 1.5)
+        self.play(TransformMatchingShapes(velEqn1 , veleqn2) , run_time = 1)
+        # self.play(TransformMatchingShapes(veleqn2[0] , veleqn3_1) , TransformMatchingShapes(veleqn2[1] , veleqn3_2))
+        self.play(veleqn2[0].animate.move_to(veleqn3_1) , veleqn2[1].animate.move_to(veleqn3_2))
+        self.wait()
+        self.play(veleqn2[0].animate.shift(DOWN + RIGHT))
+
+        self.play(ReplacementTransform(distanceEqn1 , distanceEqn2))
+        self.play(TransformFromCopy(distanceEqn2 , veleqn4 , path_arc = PI/1.5))
+
+        self.play(TransformMatchingShapes(distanceEqn2 , distanceEqn3))
+        self.play(ReplacementTransform(veleqn4 , veleqn5))
+
+        self.play(TransformMatchingShapes(distanceEqn3 , distanceEqn4))
+        self.play(ReplacementTransform(veleqn5 , veleqn6))
+
+        self.play(FadeOut(veleqn6) , veleqn2[0].animate.move_to(veleqn3_1))
+        self.add(setup2)
+
+        distanceEqn1 = MathTex("???" , color=RED).shift(LEFT * 1.5).scale(0.8)
+        self.play(term1antiderivative.animate.scale(0.6).to_corner(UL, buff=0.5))
+        self.play(Write(distanceEqn1) , veleqn2[1].animate.move_to(RIGHT * 1.5))
+        self.wait()
+        self.play(veleqn2[1].animate.shift(DR))
+        self.play(ReplacementTransform(distanceEqn1 , distanceEqn5))
+        self.play(TransformFromCopy(distanceEqn5 , veleqn7 , path_arc = PI/1.5))
+
+        self.play(TransformMatchingShapes(distanceEqn5 , distanceEqn6))
+        self.play(TransformMatchingShapes(veleqn7 , veleqn8))
+
+        self.play(TransformMatchingShapes(distanceEqn6 , distanceEqn7))
+        self.play(TransformMatchingShapes(veleqn8 , veleqn9))
+        self.play(FadeOut(veleqn9) , veleqn2[1].animate.move_to(RIGHT * 1.5))
+        self.wait()
+
+        self.play(FadeOut(setup) , ReplacementTransform(distanceEqn4 , distanceEqn8[0]) , TransformMatchingShapes(distanceEqn7 , distanceEqn8[1]) , TransformMatchingShapes(veleqn2[0] , veleqn2Copy[0]) , TransformMatchingShapes(veleqn2[1] , veleqn2Copy[1]))
+
+        self.wait()
