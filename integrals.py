@@ -1473,5 +1473,156 @@ class Scene16(MovingCameraScene):
         self.play(*[FadeOut(mob)for mob in self.mobjects])
 
 
+class Scene17(Scene):
+    def construct(self):
+        def fofx(x):
+            return (0.1 * pow(x-2.1 , 3)) - (0.6 * (x-2.1)) + (2.2)
+
+        def fdashx(x):
+            return ( (300 * x * x) - (1260 * x) + 723)/1000
+
+        axes = Axes(
+            x_range=[-5 , 7 , 1],
+            x_length=11.5,
+            y_range=[-4 , 4 , 1],
+            y_length=7.5,
+            axis_config={'include_tip':False , 'include_numbers':True , 'font_size':15 ,'line_to_number_buff':0.17, 'tip_height':0.15 , 'tip_width':0.15, 'stroke_width':1}
+        ).add_coordinates()
+
+        labels = axes.get_axis_labels(
+            MathTex("x").scale(0.5), MathTex("y").scale(0.5)
+        )
+        funcCurve = axes.plot(fofx , x_range=[-3,6] , color=RED , stroke_width = 2.5)
+        funcCurve2 = axes.plot(fofx , x_range=[-3,6] , color=RED , stroke_width = 2.5 , stroke_opacity=0.1)
+        funcCurveLabel = MathTex(r"f(" , r"x" , r")").scale(0.55).move_to(axes.c2p(5,4))
+        funcCurveLabel[0].set_color(RED)
+        funcCurveLabel[2].set_color(RED)
+
+        tangentTracker = ValueTracker(0.6858)
+        tangent = always_redraw(lambda: axes.get_secant_slope_group(tangentTracker.get_value() , funcCurve , dx=0.0001 , secant_line_color=BLUE, secant_line_length=3.5)[2].set_stroke_width(2))
+
+        derivativeeqn = MathTex(r"f^{\prime}(" , r"x" , r")" , r"=" , r"{d \;" , r"f(" , r"x" , r")" , r"\over dx}" , ).scale(0.7).move_to(axes.c2p(3,-1.4))
+        derivativeeqn[0].set_color(BLUE)
+        derivativeeqn[2].set_color(BLUE)
+        derivativeeqn[4].set_color(BLUE)
+        derivativeeqn[5].set_color(RED)
+        derivativeeqn[7].set_color(RED)
+        derivativeeqn[8].set_color(BLUE)
+
+        derivativeeqn2 = MathTex(r"=" , r"\lim_" , r"{\Delta x \to 0}" , r"{f(" , r"x" , r"+" , r"\Delta x" , r")", r"-" , r"f(" , r"x" , r")" , r"\over" , r"\Delta x}").scale(0.7).next_to(derivativeeqn , DOWN).align_to(derivativeeqn[3] , LEFT)
+        derivativeeqn2[2].set_color(BLUE)
+        derivativeeqn2[3].set_color(RED)
+        derivativeeqn2[6].set_color(BLUE)
+        derivativeeqn2[7].set_color(RED)
+        derivativeeqn2[9].set_color(RED)
+        derivativeeqn2[11].set_color(RED)
+        derivativeeqn2[13].set_color(BLUE)
+
+
+        diffFunctionCurve = axes.plot(fdashx , x_range=[-2.5,6.5] , color=BLUE , stroke_width = 2.5)
+        diffFuncCurveLabel = MathTex(r"f^{\prime}(" , r"x" , r")").scale(0.55).move_to(axes.c2p(-2.35,4))
+        diffFuncCurveLabel[0].set_color(BLUE)
+        diffFuncCurveLabel[2].set_color(BLUE)
+
+        leftLine = Line(start=axes.c2p(-1.5 , 0) , end=axes.c2p(-1.5 , fdashx(-1.5)), color=YELLOW , stroke_width=2)
+        rightLine = Line(start=axes.c2p(4.5 , 0) , end=axes.c2p(4.5 , fdashx(4.5)), color=YELLOW , stroke_width=2)
+        leftText = Tex("a" , color=YELLOW).scale(0.5).next_to(leftLine , DOWN , buff = 0.1)
+        rightText = Tex("b" , color=YELLOW).scale(0.5).next_to(rightLine , DOWN , buff = 0.1)
+        leftarea = axes.get_area(diffFunctionCurve , x_range=[-1.5 , 0.6858] ,  stroke_width=0 , opacity=0.7 , color=BLUE)
+        midarea = axes.get_area(diffFunctionCurve , x_range=[0.6858 , 3.514] , stroke_width=0 , opacity=0.7 , color=RED )
+        rightarea = axes.get_area(diffFunctionCurve , x_range=[3.514 , 4.5] ,  stroke_width=0 , opacity=0.7 , color=BLUE)
+
+        checkingTangentTracker = ValueTracker(-1.8)
+        checkingTangent = always_redraw(lambda: axes.get_secant_slope_group(checkingTangentTracker.get_value() , funcCurve , dx=0.0001 , secant_line_color=YELLOW, secant_line_length=4)[2].set_stroke_width(2))
+        checkingLine = always_redraw(lambda: VGroup(
+            Line(start=axes.c2p(checkingTangentTracker.get_value() , 0) , end=axes.c2p(checkingTangentTracker.get_value() , fofx(checkingTangentTracker.get_value())) , color=GREEN , stroke_width=2),
+            Line(start=axes.c2p(checkingTangentTracker.get_value() , 0) , end=axes.c2p(checkingTangentTracker.get_value() , fdashx(checkingTangentTracker.get_value())) , color=GREEN , stroke_width=2)
+        ))
+        checkingDot = always_redraw(lambda: Dot(axes.c2p(checkingTangentTracker.get_value() , fdashx(checkingTangentTracker.get_value())) , color=YELLOW , radius=0.09) )
+
+        integralEqn = MathTex(r"\int_{a}^{b}" , r"f^{\prime}(" , r"x" , r")" , r"\; dx" , r"= \Big(" , r"f(" , r"b" , r")" , r"+ C" , r"\Big) - \Big(" , r"f(" , r"a" , r")" , r"+C" , r"\Big)").scale(0.7).move_to(axes.c2p(-3,-2))
+        integralEqn[1].set_color(BLUE)
+        integralEqn[3].set_color(BLUE)
+        integralEqn[6].set_color(RED)
+        integralEqn[8].set_color(RED)
+        integralEqn[9].set_color(YELLOW)
+        integralEqn[11].set_color(RED)
+        integralEqn[13].set_color(RED)
+        integralEqn[14].set_color(YELLOW)
+
+        integralEqn2 = MathTex(r"\int_{a}^{b}" , r"f^{\prime}(" , r"x" , r")" , r"\; dx" , r"= " , r"f(" , r"b" , r")" , r" - " , r"f(" , r"a" , r")").scale(0.7).align_to(integralEqn , DL)
+        integralEqn2[1].set_color(BLUE)
+        integralEqn2[3].set_color(BLUE)
+        integralEqn2[6].set_color(RED)
+        integralEqn2[8].set_color(RED)
+        integralEqn2[10].set_color(RED)
+        integralEqn2[12].set_color(RED)
+
+        canvas = Rectangle(color=BLACK , height=10 , width=16 , stroke_width = 0).set_opacity(0.9)
+        integralEqn3 = MathTex(r"\int_{a}^{b}" , r"f^{\prime}(" , r"x" , r")" , r"\; dx" , r"= " , r"f(" , r"b" , r")" , r" - " , r"f(" , r"a" , r")")
+        integralEqn3[1].set_color(BLUE)
+        integralEqn3[3].set_color(BLUE)
+        integralEqn3[6].set_color(RED)
+        integralEqn3[8].set_color(RED)
+        integralEqn3[10].set_color(RED)
+        integralEqn3[12].set_color(RED)
+
+
+        antiDerivativeEqn = MathTex(r"\text{Anti-Derivative of }", r"f^{\prime}(" , r"x" , r")" , r"=" , r"f(" , r"x" , r")" , r"+C").scale(0.5).move_to(axes.c2p(-3,-1))
+        antiDerivativeEqn[1].set_color(BLUE)
+        antiDerivativeEqn[3].set_color(BLUE)
+        antiDerivativeEqn[5].set_color(RED)
+        antiDerivativeEqn[7].set_color(RED)
+        antiDerivativeEqn[8].set_color(YELLOW)
+
+        cross1 = Cross(integralEqn[9] , stroke_color=RED , stroke_width=3)[0].scale([0.7 , 1 , 1]).shift(RIGHT * 0.165)
+        cross2 = Cross(integralEqn[14] , stroke_color=RED , stroke_width=3)[0].scale([0.7 , 1 , 1]).shift(RIGHT * 0.165)
+
+        fundamentalText = Text("Fundamental theorem of calculus!" , color=BLUE).scale(0.9).to_edge(UP)
+
+        self.play(Create(axes) , Write(labels))
+        self.play(Create(funcCurve) , Write(funcCurveLabel) ,  rate_func = linear)
+        self.play(Create(tangent))
+        self.play(tangentTracker.animate.set_value(-1.8) , run_time = 1.5 , rate_func=linear)
+        self.wait(0.5)
+        self.play(tangentTracker.animate.set_value(5.5) , run_time = 2.6 , rate_func=linear)
+        self.wait()
+
+        self.play(Write(derivativeeqn) , Create(diffFunctionCurve) , FadeOut(tangent) , Write(diffFuncCurveLabel) , rate_func = linear)
+        self.play(Write(derivativeeqn2))
+        self.wait()
+
+        self.play(FadeIn(checkingDot , checkingLine , checkingTangent))
+        self.wait()
+        self.play(checkingTangentTracker.animate.set_value(0.6858) , rate_funct=linear , run_time = 4)
+        self.wait(2)
+        self.play(checkingTangentTracker.animate.set_value(2.1) , rate_funct=linear , run_time = 2)
+        self.wait(2)
+        self.play(checkingTangentTracker.animate.set_value(3.514) , rate_funct=linear , run_time = 2)
+        self.wait()
+
+        self.play(Create(leftLine) , Write(leftText) , FadeTransform(funcCurve , funcCurve2) , funcCurveLabel.animate.set_opacity(0.1) , FadeOut(checkingDot , checkingLine , checkingTangent))
+        self.play(Create(rightLine) , Write(rightText))
+        self.play(FadeIn(leftarea , midarea , rightarea))
+        self.play(Write( VGroup(*[integralEqn[i] for i in range(5) ]) ))
+        self.wait()
+        
+        self.play(Write( VGroup(*[antiDerivativeEqn[i] for i in range(8) ]) ))
+        self.play(Write(antiDerivativeEqn[8]))
+        self.play(Write( VGroup(*[integralEqn[i] for i in range(5 , 16) ]) ))
+        self.wait()
+
+        self.play(Create(cross1) , Create(cross2))
+        self.play(FadeTransform(VGroup( *[integralEqn[i] for i in range(5 , 16)] ) , VGroup(*[integralEqn2[i] for i in range(5 , 13)])) , FadeOut(cross1 , cross2 , shift=LEFT))
+        self.wait()
+        self.play(FadeIn(canvas), run_time = 0.2)
+        self.play(FadeIn(integralEqn3 , target_position = integralEqn2))
+        self.wait()
+        self.play(Write(fundamentalText) , rate_func = linear)
+        
+        self.wait(5)
+
+        self.play(*[FadeOut(mob)for mob in self.mobjects])
+
 
 
