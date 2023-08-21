@@ -13,6 +13,25 @@ def machine():
     return VGroup(inp , outp , box)
 
 
+def remove_trailing_zeros_and_truncate(number):
+    num_str = str(number)
+    
+    if '.' in num_str:
+        integer_part, decimal_part = num_str.split('.')
+        
+        decimal_part = decimal_part.rstrip('0')
+        
+        if len(decimal_part) > 3:
+            decimal_part = decimal_part[:3]
+        
+        if not decimal_part:
+            return int(integer_part)
+        
+        return float(f"{integer_part}.{decimal_part}")
+    
+    return number
+
+
 class Scene1(Scene):
     def construct(self):
         welcome = Tex("Welcome back!", color=BLUE).scale(1.2)
@@ -156,8 +175,8 @@ class Scene4(Scene):
         # self.add(NumberPlane())
         title = Text("Graphing a Function!" , color=BLUE).scale(0.8).to_edge(UP)
         ans = Text("Graph of a function is the visual representation of the function.").scale(0.5).shift(UP)
-        xaxis = Line(start = [-5,0,0] , end=[5,0,0])
-        yaxis = Line(start = [0,3.5,0] , end=[0,-3.5,0])
+        xaxis = Line(start = [-5,0,0] , end=[5,0,0] , stroke_width = 2.5)
+        yaxis = Line(start = [0,3.5,0] , end=[0,-3.5,0] , stroke_width = 2.5)
         xaxis_text = Text("x-axis").scale(0.4).move_to([4.5,0.2,0])
         yaxis_text = Text("y-axis").scale(0.4).move_to([-0.5,3.25,0])
         x = NumberLine(
@@ -172,7 +191,7 @@ class Scene4(Scene):
             tip_width=0.1,
             tick_size=0.08,
             line_to_number_buff=0.15,
-            numbers_to_exclude=[0],
+            numbers_to_exclude=[0]
         )
 
 
@@ -199,7 +218,8 @@ class Scene4(Scene):
             y_length=7
         )
 
-        curve = ax.plot(lambda x:2 * x , x_range=(-5,5) , color = BLUE)
+        curve = ax.plot(lambda x:2 * x , x_range=(-5,5) , color = BLUE , stroke_width = 2.5)
+        curve2 = ax.plot(lambda x:2 * x , x_range=(-10,10) , color = BLUE , stroke_width = 2.5)
         equation = MathTex(r"y = 2x" , color = RED).scale(0.5).move_to([1.25 , 2.75 , 0]).set_color_by_gradient(BLUE , BLUE_A , WHITE)
 
         input_set = VGroup()
@@ -211,9 +231,9 @@ class Scene4(Scene):
         for i in range(-6,7,2):
             output_set.add(MathTex(f"{i}" , color=BLUE))
         output_set.arrange(direction=DOWN , buff=0.45).scale(0.7).shift(RIGHT * 1.25 + DOWN * 0.24)
-        domain_oval = Ellipse(width=1.2 , height=4 , color = WHITE).move_to(input_set)
-        range_oval = Ellipse(width=1.2 , height=4 , color = BLUE).move_to(output_set)
-        curveline = Arc(radius = 2 , start_angle=PI-(PI/3.15) , angle=(-23*PI)/63)
+        domain_oval = Ellipse(width=1.2 , height=4 , color = WHITE , stroke_width = 2).move_to(input_set)
+        range_oval = Ellipse(width=1.2 , height=4 , color = BLUE , stroke_width = 2).move_to(output_set)
+        curveline = Arc(radius = 2 , start_angle=PI-(PI/3.15) , angle=(-23*PI)/63 , stroke_width = 2)
         tri = Triangle(stroke_color=WHITE , fill_color=WHITE, fill_opacity = 1).rotate(-PI/2).scale(0.15).shift(UP * 1.75)
 
 
@@ -228,12 +248,9 @@ class Scene4(Scene):
         p7 = Dot(color=BLUE , radius=0.04).move_to([0.75 , 1.5 , 0])
 
 
-
-
-
         self.play(Write(title))
         self.wait(0.5)
-        self.play(AddTextLetterByLetter(ans) , run_time = 3.5)
+        self.play(Write(ans) , run_time = 3.5)
         self.wait(1.5)
         self.play(Unwrite(ans) , Unwrite(title) , run_time = 0.85)
         self.play(Create(xaxis))
@@ -261,29 +278,35 @@ class Scene4(Scene):
 
         self.play(Create(curve))
         self.play(Write(equation))
-
-
-        self.wait(2.5)
-
         self.play(
-            FadeOut(title),
-            FadeOut(xaxis),
-            FadeOut(yaxis),
-            FadeOut(xaxis_text),
-            FadeOut(yaxis_text),
-            FadeOut(x),
-            FadeOut(y),
-            FadeOut(curve),
-            FadeOut(equation),
-            FadeOut(map_diagram),
-            FadeOut(p1),
-            FadeOut(p2),
-            FadeOut(p3),
-            FadeOut(p4),
-            FadeOut(p5),
-            FadeOut(p6),
-            FadeOut(p7),
+            AnimationGroup(*[
+                input_set[i].animate(rate_func = there_and_back).shift(LEFT * 0.5) for i in range(input_set.__len__())
+            ] , lag_ratio=0.267) , run_time = 1.5
         )
+
+        self.play(Transform(curve , curve2 , rate_func = linear) , equation.animate.shift(LEFT * 0.5) , FadeOut(p1 , p2 , p3 , p4 , p5 , p6 , p7))
+
+
+        self.wait(2)
+        xTracker = ValueTracker(4)
+        dot = always_redraw(lambda: Dot(ax.c2p(xTracker.get_value(),0)) )
+        height = always_redraw(lambda: DashedLine(ax.c2p(xTracker.get_value(),0) , ax.c2p(xTracker.get_value(),2 * xTracker.get_value()) , stroke_width = 2) )
+        brace = always_redraw(lambda: Brace(height , RIGHT) if (xTracker.get_value() > 0) else Brace(height , LEFT))
+        braceValue = always_redraw(lambda: Tex(f"{remove_trailing_zeros_and_truncate(2 * xTracker.get_value())}").scale(abs(xTracker.get_value() * 2) / 10).next_to(brace , RIGHT if (xTracker.get_value() >0) else LEFT) )
+
+
+        self.play(FocusOn(ax.c2p(4,0)), FadeIn(dot) , run_time = 1)
+        self.play(Create(height))
+        self.play(GrowFromCenter(brace) , Write(braceValue))
+
+        self.wait()
+        self.play(xTracker.animate.set_value(-4) , run_time = 4)
+
+
+
+
+        self.wait(2)
+        self.play(*[FadeOut(mob)for mob in self.mobjects])
         self.wait()
 
 
